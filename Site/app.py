@@ -5,6 +5,7 @@ import pickle
 import base64
 import os
 
+# ✅ BASE DIRECTORY
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_binary_file_downloader_html(df):
@@ -89,6 +90,19 @@ with tab2:
         2. Total 11 features in this order ('Age', 'Sex', 'ChestPainType', 'RestingBP', 'Cholesterol', 'FastingBS', 'RestingECG', 'MaxHR', 'ExerciseAngina', 'Oldpeak', 'ST_Slope').
 
         3. Check the spellings of the feature names.
+
+        4. Feature values conventions:
+            - Age: age of the patient [years]
+            - Sex: [0: Male, 1: Female]
+            - ChestPainType: [3: Typical Angina, 0: Atypical Angina, 1: Non-Anginal Pain, 2: Asymptomatic]
+            - RestingBP: [mm Hg]
+            - Cholesterol: [mm/dl]
+            - FastingBS: [1: if >120 mg/dl else 0]
+            - RestingECG: [0: Normal, 1: ST-T abnormality]
+            - MaxHR: [60–202]
+            - ExerciseAngina: [1: Yes, 0: No]
+            - Oldpeak: ST depression
+            - ST_Slope: [0: upsloping, 1: flat, 2: downsloping]
     """)
 
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
@@ -97,11 +111,12 @@ with tab2:
 
         input_data = pd.read_csv(uploaded_file)
 
-        # ✅ FIX: column name mismatch
-        input_data.rename(columns={'ChestPain': 'ChestPainType'}, inplace=True)
-
         st.write("Preview of uploaded data:")
         st.dataframe(input_data.head())
+
+        # ✅ FIX column name mismatch automatically
+        if "ChestPain" in input_data.columns:
+            input_data.rename(columns={"ChestPain": "ChestPainType"}, inplace=True)
 
         if st.button("Run Bulk Prediction"):
 
@@ -113,16 +128,19 @@ with tab2:
                 model_path = os.path.join(BASE_DIR, 'LogisticRegression.pkl')
                 model = pickle.load(open(model_path,'rb'))
 
-                features = ['Age', 'Sex', 'ChestPainType', 'RestingBP', 'Cholesterol',
-                            'FastingBS', 'RestingECG', 'MaxHR', 'ExerciseAngina', 'Oldpeak', 'ST_Slope']
+                expected_columns= ['Age', 'Sex', 'ChestPainType', 'RestingBP', 'Cholesterol', 'FastingBS', 'RestingECG', 'MaxHR', 'ExerciseAngina', 'Oldpeak', 'ST_Slope']
 
-                if set(features).issubset(input_data.columns):
+                if set(expected_columns).issubset(input_data.columns):
 
-                    input_data['Prediction LR'] = ''
+                    # ✅ FIX: numeric column (NOT string)
+                    input_data['Prediction LR'] = 0  
 
-                    for i in range(len(input_data)):
-                        arr = input_data.loc[i, features].values   # ✅ FIXED
-                        input_data.loc[i, 'Prediction LR'] = model.predict([arr])[0]
+                    # ✅ FIX: correct feature selection
+                    X = input_data[expected_columns]
+
+                    preds = model.predict(X)
+
+                    input_data['Prediction LR'] = preds
 
                     st.success("✅ Prediction Completed!")
 
