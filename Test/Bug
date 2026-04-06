@@ -1,0 +1,37 @@
+Known Issues / Bugs
+
+* Model file dependency issue
+  The application depends on exact `.pkl` file names. Any mismatch in file names or missing files results in a runtime error (FileNotFoundError).
+
+* No error handling for model loading
+  The app directly loads models using `pickle.load()` without try-except blocks. If a file is missing or corrupted, the app crashes instead of showing a user-friendly message.
+
+* No validation for missing (NaN) values in bulk upload
+  Although instructions mention “No NaN values allowed”, the code does not validate or handle missing values, which may lead to incorrect predictions or runtime errors.
+
+* Inefficient model loading (performance issue)
+  Models are loaded every time the user clicks the submit button, increasing response time and reducing performance.
+
+* Lack of input validation (manual prediction)
+  Users can enter unrealistic or invalid values (e.g., blood pressure = 0), which can affect prediction accuracy and reliability.
+
+* Column order dependency in bulk prediction
+  The prediction logic relies on column order (`iloc`) instead of column names. Any change in column order can lead to incorrect predictions.
+
+* Case-sensitive file handling issue
+  Deployment environments (like Streamlit Cloud) are case-sensitive. Incorrect capitalization in file names can break the application.
+
+* Duplicate files in repository
+  Multiple `app.py` files or unnecessary files (e.g., unused HTML files) can cause confusion and deployment issues.
+
+* No file type validation for upload
+  The app allows CSV upload but does not strictly validate file content or structure beyond column names.
+
+* No user feedback for invalid inputs
+  The app does not provide clear error messages when users input incorrect or out-of-range values.
+
+* Visualization tab dependency issue
+  If `plotly` is not installed, the app fails instead of handling the error gracefully.
+
+* No scalability handling for large datasets
+  Uploading large CSV files may slow down or crash the app due to lack of optimization.
